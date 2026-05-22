@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Customers;
+use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -14,7 +14,7 @@ class CustomerController extends Controller
     public function index(Request $request): JsonResponse
     {
         $status = $request->query("status");
-        $query = Customers::query();
+        $query = Customer::query();
         if ($status !== null) {
             if (!in_array($status, ["active", "inactive"], true)) {
                 return response()->json([
@@ -27,23 +27,25 @@ class CustomerController extends Controller
             }
             $query->where("status", $status === "active");
         }
-        $customers = $query->latest()->get();
+        $customer = $query->latest()->get();
         return response()->json([
             "success" => true,
-            "message" => "Customers retrieved successfully",
-            "data" => $customers,
+            "message" => "Customer retrieved successfully",
+            "data" => $customer,
         ]);
     }
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
+            "customer_id" => ["required", "string", "unique:customer,customer_id"],
             "name" => ["required", "string"],
-            "price" => ["required", "integer", "min:0"],
-            "description" => ["nullable", "string"],
+            "email" => ["required", "email", "unique:customer,email"],
+            "phone" => ["nullable", "string"],
+            "address" => ["nullable", "string"],
             "status" => ["nullable", "boolean"],
         ]);
         $data["status"] = $data["status"] ?? true;
-        $customer = Customers::query()->create($data);
+        $customer = Customer::query()->create($data);
         return response()->json([
             "success" => true,
             "message" => "Customer created successfully",
@@ -52,7 +54,7 @@ class CustomerController extends Controller
     }
     public function show(int $customer): JsonResponse
     {
-        $customer = Customers::query()->find($customer);
+        $customer = Customer::query()->find($customer);
         if (!$customer) {
             return response()->json([
                 "success" => false,
@@ -68,18 +70,19 @@ class CustomerController extends Controller
     }
     public function update(Request $request, int $customer): JsonResponse
     {
-        $customer = Customers::query()->find($customer);
+        $customer = Customer::query()->find($customer);
         if (!$customer) {
             return response()->json([
                 "success" => false,
-                "message" => "Customers not found",
+                "message" => "Customer not found",
                 "errors" => [],
             ], 404);
         }
         $data = $request->validate([
             "name" => ["sometimes", "string"],
-            "price" => ["sometimes", "integer", "min:0"],
-            "description" => ["nullable", "string"],
+            "email" => ["sometimes", "email", "unique:customer,email"],
+            "phone" => ["nullable", "string"],
+            "address" => ["nullable", "string"],
             "status" => ["nullable", "boolean"],
         ]);
         $customer->update($data);
@@ -91,7 +94,7 @@ class CustomerController extends Controller
     }
     public function destroy(int $customer): JsonResponse
     {
-        $customer = Customers::query()->find($customer);
+        $customer = Customer::query()->find($customer);
         if (!$customer) {
             return response()->json([
                 "success" => false,
@@ -115,7 +118,7 @@ class CustomerController extends Controller
     }
     public function activate(int $customer): JsonResponse
     {
-        $customer = Customers::query()->find($customer);
+        $customer = Customer::query()->find($customer);
         if (!$customer) {
             return response()->json([
                 "success" => false,
@@ -132,7 +135,7 @@ class CustomerController extends Controller
     }
     public function deactivate(int $customer): JsonResponse
     {
-        $customer = Customers::query()->find($customer);
+        $customer = Customer::query()->find($customer);
         if (!$customer) {
             return response()->json([
                 "success" => false,

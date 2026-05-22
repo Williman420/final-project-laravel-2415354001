@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Customers extends Model
+class Customer extends Model
 {
     protected $fillable = [
         'customer_id',
@@ -16,6 +16,6 @@ class Customers extends Model
     ];
 
     protected $casts = [
-        'status' => 'boolean',
+        'status' => 'boolean'
     ];
 }
